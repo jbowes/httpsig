@@ -78,8 +78,9 @@ For more usage examples and documentation, see the [godoc refernce][godoc]
 ## The Big Feature Matrix
 
 This implementation is based on version `05` of [Signing HTTP Messages][msgsig]
-(`draft-ietf-htttpbis-message-signatures-05`). Digest computation is based on
-version `05` of [Digest Headers][dighdr] (`draft-ietf-httpbis-digest-headers-05`).
+(`draft-ietf-htttpbis-message-signatures-05` from 8 June 2021). Digest
+computation is based on version `05` of [Digest Headers][dighdr]
+(`draft-ietf-httpbis-digest-headers-05` from 13 April 2021).
 
 | Feature                         |   |   |
 | ------------------------------- | - | - |
