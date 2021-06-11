@@ -29,8 +29,9 @@ To sign HTTP requests from a client, wrap an `http.Client`'s transport with `New
 
 ```go
 client := http.Client{
-  // Wrap the transport:
-  Transport: httpsig.NewSignTransport(http.DefaultTransport, httpsig.WithSignEcdsaP256Sha256("key1", privKey)),
+	// Wrap the transport:
+	Transport: httpsig.NewSignTransport(http.DefaultTransport,
+		httpsig.WithSignEcdsaP256Sha256("key1", privKey)),
 }
 
 var buf bytes.Buffer
@@ -40,7 +41,7 @@ var buf bytes.Buffer
 
 resp, err := client.Post("https://some-url.com", "application/json", &buf)
 if err != nil {
-  return
+	return
 }
 defer resp.Body.Close()
 
