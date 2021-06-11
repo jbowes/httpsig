@@ -27,6 +27,42 @@ This implementation is based on version `05` of [Signing HTTP Messages][msgsig]
 (`draft-ietf-htttpbis-message-signatures-05`). Digest computation is based on
 version `05` of [Digest Headers][dighdr] (`draft-ietf-httpbis-digest-headers-05`).
 
+| Feature                         |   |   |
+| ------------------------------- | - | - |
+| sign requests                   | ✅ |   |
+| verify requests                 | ✅ |   |
+| sign responses                  |   | ❌ |
+| verify responses                |   | ❌ |
+| enforce `expires`               |   | ❌ |
+| create multiple signatures      | ✅ |   |
+| verify from multiple signatures | ✅ |   |
+| `rsa-pss-sha512`                | ✅ |   |
+| `rsa-v1_5-sha256`               |   | ❌ |
+| `hmac-sha256`                   | ✅ |   |
+| `ecdsa-p256-sha256`             | ✅ |   |
+| custom signature formats        |   | ❌ |
+| JSON Web Signatures             |   | ❌ |
+| request digests                 | ✅ |   |
+| response digests                |   | ❌ |
+| multiple digests                |   | ❌ |
+| digest: `sha-256`               |   | ❌ |
+| digest: `sha-512`               |   | ❌ |
+| digest: `md5`                   |   | ❌ |
+| digest: `sha`                   |   | ❌ |
+| digest: `unixsum`               |   | ❌ |
+| digest: `unixcksum`             |   | ❌ |
+| digest: `id-sha-512`            |   | ❌ |
+| digest: `id-sha-256`            | ✅ |   |
+| custom digest formats           |   | ❌ |
+
+
+
+
+
+
+
+
+
 ## Contributing
 
 I would love your help!
