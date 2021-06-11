@@ -10,7 +10,7 @@ import (
 
 const secret = "support-your-local-cat-bonnet-store"
 
-func Example_Round_Trip() {
+func Example_round_trip() {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		io.WriteString(w, "Your request has a valid signature!")
