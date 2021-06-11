@@ -157,12 +157,18 @@ var (
 	invalidSignatureError   = errors.New("invalid signature")
 )
 
+// These error checking funcs aren't needed yet, so don't export them
+
+/*
+
 func IsNotSignedError(err error) bool          { return errors.Is(err, notSignedError) }
 func IsMalformedSignatureError(err error) bool { return errors.Is(err, malformedSignatureError) }
 func IsUnknownKeyError(err error) bool         { return errors.Is(err, unknownKeyError) }
 func IsAlgMismatchError(err error) bool        { return errors.Is(err, algMismatchError) }
 func IsSignatureExpiredError(err error) bool   { return errors.Is(err, signatureExpiredError) }
 func IsInvalidSignatureError(err error) bool   { return errors.Is(err, invalidSignatureError) }
+
+*/
 
 func verifyRsaPssSha512(pk *rsa.PublicKey) verHolder {
 	return verHolder{
