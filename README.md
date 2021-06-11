@@ -4,7 +4,7 @@
   readable.
 -->
 <h1 align="center">httpsig</h1>
-<p align="center"><i>Standards-based HTTP request signing and verification for<a href="https://golang.org">Go</a></i></p>
+<p align="center"><i>Standards-based HTTP request signing and verification for <a href="https://golang.org">Go</a></i></p>
 
 <div align="center">
   <a href="https://godoc.org/github.com/jbowes/httpsig"><img src="https://godoc.org/github.com/jbowes/httpsig?status.svg" alt="GoDoc"></a>
