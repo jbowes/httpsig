@@ -3,8 +3,8 @@
 // license that can be found in the LICENSE file.
 
 /*
-Package httpsig provides support for signing and verifying
-HTTP requests according to the Signing HTTP Messages draft standard
+Package httpsig signs and verifies HTTP requests (with body digests) according
+to the "Signing HTTP Messages" draft standard
 https://datatracker.ietf.org/doc/draft-ietf-httpbis-message-signatures/
 */
 package httpsig
