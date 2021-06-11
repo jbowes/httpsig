@@ -72,6 +72,9 @@ h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 middleware := httpsig.NewVerifyMiddleware(httpsig.WithVerifyEcdsaP256Sha256("key1", pubkey))
 http.Handle("/", middleware(h))
 ```
+
+For more usage examples and documentation, see the [godoc refernce][godoc]
+
 ## The Big Feature Matrix
 
 This implementation is based on version `05` of [Signing HTTP Messages][msgsig]
@@ -124,6 +127,7 @@ I would love your help!
 [msgsig]: https://datatracker.ietf.org/doc/draft-ietf-httpbis-message-signatures/
 [dighdr]: https://datatracker.ietf.org/doc/draft-ietf-httpbis-digest-headers/
 
+[godoc]: https://pkg.go.dev/github.com/jbowes/httpsig
 [issues]: ./issues
 [bug]: ./issues/new?labels=bug
 [enhancement]: ./issues/new?labels=enhancement
