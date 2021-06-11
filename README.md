@@ -33,7 +33,8 @@ and the request path.
 
 ### Signing HTTP Requests in Clients
 
-To sign HTTP requests from a client, wrap an `http.Client`'s transport with `NewSignTransport`:
+To sign HTTP requests from a client, wrap an `http.Client`'s transport with
+`NewSignTransport`:
 
 ```go
 client := http.Client{
@@ -58,8 +59,9 @@ defer resp.Body.Close()
 
 ### Verifying HTTP Requests in Servers
 
-To verify HTTP requests on the server, wrap the `http.Handler`s you wish to protect with `NewVerifyMiddleware`. `NewVerifyMiddleware` returns the wrapping func, so you can reuse
-configuration across multiple handlers.
+To verify HTTP requests on the server, wrap the `http.Handler`s you wish to
+protect with `NewVerifyMiddleware`. `NewVerifyMiddleware` returns the wrapping
+func, so you can reuse configuration across multiple handlers.
 
 ```go
 h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
