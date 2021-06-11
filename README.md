@@ -21,6 +21,46 @@ on signing headers and request paths, and you probably want to sign the
 request body too, so body digest calculation according to
 [Digest Headers][dighdr] is included.
 
+## Usage
+
+### Signing HTTP Requests in Clients
+
+To sign HTTP requests from a client, wrap an `http.Client`'s transport with `NewSignTransport`:
+
+```go
+client := http.Client{
+  // Wrap the transport:
+  Transport: httpsig.NewSignTransport(http.DefaultTransport, httpsig.WithSignEcdsaP256Sha256("key1", privKey)),
+}
+
+var buf bytes.Buffer
+
+// construct body, etc
+// ...
+
+resp, err := client.Post("https://some-url.com", "application/json", &buf)
+if err != nil {
+  return
+}
+defer resp.Body.Close()
+
+// ...
+```
+
+### Verifying HTTP Requests in Servers
+
+To verify HTTP requests on the server, wrap the `http.Handler`s you wish to protect with `NewVerifyMiddleware`. `NewVerifyMiddleware` returns the wrapping func, so you can reuse
+configuration across multiple handlers.
+
+```go
+h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/plain")
+	io.WriteString(w, "Your request has an valid signature!")
+})
+
+middleware := httpsig.NewVerifyMiddleware(httpsig.WithVerifyEcdsaP256Sha256("key1", pubkey))
+http.Handle("/", middleware(h))
+```
 ## The Big Feature Matrix
 
 This implementation is based on version `05` of [Signing HTTP Messages][msgsig]
@@ -54,14 +94,6 @@ version `05` of [Digest Headers][dighdr] (`draft-ietf-httpbis-digest-headers-05`
 | digest: `id-sha-512`            |   | ❌ |
 | digest: `id-sha-256`            | ✅ |   |
 | custom digest formats           |   | ❌ |
-
-
-
-
-
-
-
-
 
 ## Contributing
 
