@@ -82,33 +82,33 @@ This implementation is based on version `05` of [Signing HTTP Messages][msgsig]
 computation is based on version `05` of [Digest Headers][dighdr]
 (`draft-ietf-httpbis-digest-headers-05` from 13 April 2021).
 
-| Feature                         |   |   |
-| ------------------------------- | - | - |
-| sign requests                   | ✅ |   |
-| verify requests                 | ✅ |   |
-| sign responses                  |   | ❌ |
-| verify responses                |   | ❌ |
-| enforce `expires`               |   | ❌ |
-| create multiple signatures      | ✅ |   |
-| verify from multiple signatures | ✅ |   |
-| `rsa-pss-sha512`                | ✅ |   |
-| `rsa-v1_5-sha256`               |   | ❌ |
-| `hmac-sha256`                   | ✅ |   |
-| `ecdsa-p256-sha256`             | ✅ |   |
-| custom signature formats        |   | ❌ |
-| JSON Web Signatures             |   | ❌ |
-| request digests                 | ✅ |   |
-| response digests                |   | ❌ |
-| multiple digests                |   | ❌ |
-| digest: `sha-256`               |   | ❌ |
-| digest: `sha-512`               |   | ❌ |
-| digest: `md5`                   |   | ❌ |
-| digest: `sha`                   |   | ❌ |
-| digest: `unixsum`               |   | ❌ |
-| digest: `unixcksum`             |   | ❌ |
-| digest: `id-sha-512`            |   | ❌ |
-| digest: `id-sha-256`            | ✅ |   |
-| custom digest formats           |   | ❌ |
+| Feature                         |   |   | Notes                                                                  |
+| ------------------------------- | - | - | ---------------------------------------------------------------------- |
+| sign requests                   | ✅ |   |                                                                        |
+| verify requests                 | ✅ |   |                                                                        |
+| sign responses                  |   | ❌ |                                                                        |
+| verify responses                |   | ❌ |                                                                        |
+| enforce `expires`               |   | ❌ | sorely needed                                                          |
+| create multiple signatures      | ✅ |   |                                                                        |
+| verify from multiple signatures | ✅ |   |                                                                        |
+| `rsa-pss-sha512`                | ✅ |   |                                                                        |
+| `rsa-v1_5-sha256`               |   | ❌ |                                                                        |
+| `hmac-sha256`                   | ✅ |   |                                                                        |
+| `ecdsa-p256-sha256`             | ✅ |   |                                                                        |
+| custom signature formats        |   | ❌ | `eddsa` is not part of the spec, so custom support here would be nice! |
+| JSON Web Signatures             |   | ❌ | JWS doesn't support any additional algs, but it is part of the spec    |
+| request digests                 | ✅ |   |                                                                        |
+| response digests                |   | ❌ | Tricky to support for signature use according to the spec              |
+| multiple digests                |   | ❌ |                                                                        |
+| digest: `sha-256`               |   | ❌ |                                                                        |
+| digest: `sha-512`               |   | ❌ |                                                                        |
+| digest: `md5`                   |   | ❌ | Deprecated in the spec. Unlikely to be supported.                      |
+| digest: `sha`                   |   | ❌ | Deprecated in the spec. Unlikely to be supported.                      |
+| digest: `unixsum`               |   | ❌ |                                                                        |
+| digest: `unixcksum`             |   | ❌ |                                                                        |
+| digest: `id-sha-512`            |   | ❌ |                                                                        |
+| digest: `id-sha-256`            | ✅ |   | `id-*` digests are more resilient for `content-encoding` support       |
+| custom digest formats           |   | ❌ |                                                                        |
 
 ## Contributing
 
