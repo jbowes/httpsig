@@ -21,6 +21,14 @@ on signing headers and request paths, and you probably want to sign the
 request body too, so body digest calculation according to
 [Digest Headers][dighdr] is included.
 
+Signed HTTP requests are ideal for scenarios like sending webhooks, allowing
+recievers to securely verify the request came from your server, mitigate replay
+attacks, etc.
+
+Contrary to the commonly-used `x-hub-signature`, The standards implemented by
+this package provide a signature of the entire request, including HTTP headers
+and the request path.
+
 ## Usage
 
 ### Signing HTTP Requests in Clients
