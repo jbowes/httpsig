@@ -23,9 +23,9 @@ request body too, so body digest calculation according to
 
 ## The Big Feature Matrix
 
-This implementation is based on version `05` of "Signing HTTP Messages" 
+This implementation is based on version `05` of [Signing HTTP Messages][msgsig]
 (`draft-ietf-htttpbis-message-signatures-05`). Digest computation is based on
-version `05` of "Digest Headers" (`draft-ietf-httpbis-digest-headers-05`).
+version `05` of [Digest Headers][dighdr] (`draft-ietf-httpbis-digest-headers-05`).
 
 ## Contributing
 
