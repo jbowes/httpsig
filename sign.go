@@ -41,6 +41,8 @@ type signer struct {
 func (s *signer) Sign(msg *message) (http.Header, error) {
 	var b bytes.Buffer
 
+	var items []string
+
 	// canonicalize headers
 	for _, h := range s.headers {
 		// optionally canonicalize request path via magic string
@@ -49,6 +51,13 @@ func (s *signer) Sign(msg *message) (http.Header, error) {
 			if err != nil {
 				return nil, err
 			}
+
+			items = append(items, h)
+			continue
+		}
+
+		// Skip unset headers
+		if len(msg.Header.Values(h)) == 0 {
 			continue
 		}
 
@@ -56,6 +65,8 @@ func (s *signer) Sign(msg *message) (http.Header, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		items = append(items, h)
 	}
 
 	now := s.nowFunc()
@@ -65,7 +76,7 @@ func (s *signer) Sign(msg *message) (http.Header, error) {
 	i := 1 // 1 indexed icky
 	for k, si := range s.keys {
 		sp := &signatureParams{
-			items:   s.headers,
+			items:   items,
 			keyID:   k,
 			created: now,
 			alg:     si.alg,

@@ -10,6 +10,7 @@ import (
 	"crypto/rsa"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 var defaultHeaders = []string{"content-type", "content-length", "host"} // also request path and digest
@@ -32,7 +33,10 @@ func sliceHas(haystack []string, needle string) bool {
 // included on each request. Multiple included signatures allow you to gracefully introduce stronger
 // algorithms, rotate keys, etc.
 func NewSignTransport(transport http.RoundTripper, opts ...signOption) http.RoundTripper {
-	s := signer{}
+	s := signer{
+		keys:    map[string]sigHolder{},
+		nowFunc: time.Now,
+	}
 
 	for _, o := range opts {
 		o.configureSign(&s)
@@ -45,8 +49,8 @@ func NewSignTransport(transport http.RoundTripper, opts ...signOption) http.Roun
 	// TODO: normalize headers? lowercase & de-dupe
 
 	// request path first, for aesthetics
-	if !sliceHas(s.headers, "@request-path") {
-		s.headers = append([]string{"@request-path"}, s.headers...)
+	if !sliceHas(s.headers, "@request-target") {
+		s.headers = append([]string{"@request-target"}, s.headers...)
 	}
 
 	if !sliceHas(s.headers, "digest") {
@@ -84,7 +88,7 @@ func NewSignTransport(transport http.RoundTripper, opts ...signOption) http.Roun
 			nr.Header[k] = v
 		}
 
-		return transport.RoundTrip(r)
+		return transport.RoundTrip(nr)
 	})
 }
 
@@ -104,7 +108,10 @@ func (r rt) RoundTrip(req *http.Request) (*http.Response, error) { return r(req)
 func NewVerifyMiddleware(opts ...verifyOption) func(http.Handler) http.Handler {
 
 	// TODO: form and multipart support
-	v := verifier{}
+	v := verifier{
+		keys:    make(map[string]verHolder),
+		nowFunc: time.Now,
+	}
 
 	for _, o := range opts {
 		o.configureVerify(&v)
