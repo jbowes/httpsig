@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/jbowes/httpsig"
 )
@@ -15,11 +16,14 @@ func Example_round_trip() {
 		w.Header().Set("Content-Type", "text/plain")
 		io.WriteString(w, "Your request has a valid signature!")
 	})
-
+	
 	middleware := httpsig.NewVerifyMiddleware(httpsig.WithHmacSha256("key1", []byte(secret)))
 	http.Handle("/", middleware(h))
 	go func() { http.ListenAndServe("127.0.0.1:1234", http.DefaultServeMux) }()
 
+	// Give the server time to sleep. Terrible, I know.
+	time.Sleep(100 * time.Millisecond)
+	
 	client := http.Client{
 		// Wrap the transport:
 		Transport: httpsig.NewSignTransport(http.DefaultTransport,
