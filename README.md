@@ -9,7 +9,9 @@
 <div align="center">
   <a href="https://godoc.org/github.com/jbowes/httpsig"><img src="https://godoc.org/github.com/jbowes/httpsig?status.svg" alt="GoDoc"></a>
   <img alt="Alpha Quality" src="https://img.shields.io/badge/status-ALPHA-orange.svg" >
+  <a href="https://github.com/jbowes/httpsig/actions/workflows/go.yml"><img alt="Build Status" src="https://github.com/jbowes/httpsig/actions/workflows/go.yml/badge.svg?branch=main"></a>
   <a href="./LICENSE"><img alt="BSD license" src="https://img.shields.io/badge/license-BSD-blue.svg"></a>
+  <a href="https://codecov.io/gh/jbowes/httpsig"><img alt="codecov" src="https://img.shields.io/codecov/c/github/jbowes/httpsig.svg"></a>
   <a href="https://goreportcard.com/report/github.com/jbowes/httpsig"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/jbowes/httpsig"></a>
 </div><br /><br />
 
