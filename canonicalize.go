@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	nurl "net/url"
 	"strconv"
 	"strings"
@@ -20,7 +19,7 @@ import (
 // needed to construct a signature.
 type message struct {
 	Method string
-	URL    *url.URL
+	URL    *nurl.URL
 	Header http.Header
 }
 
@@ -107,18 +106,18 @@ func (sp *signatureParams) canonicalize() string {
 	return o
 }
 
-var malformedSignatureInput = errors.New("malformed signature-input header")
+var errMalformedSignatureInput = errors.New("malformed signature-input header")
 
 func parseSignatureInput(in string) (*signatureParams, error) {
 	sp := &signatureParams{}
 
 	parts := strings.Split(in, ";")
 	if len(parts) < 1 {
-		return nil, malformedSignatureInput
+		return nil, errMalformedSignatureInput
 	}
 
 	if parts[0][0] != '(' || parts[0][len(parts[0])-1] != ')' {
-		return nil, malformedSignatureInput
+		return nil, errMalformedSignatureInput
 	}
 
 	if len(parts[0]) > 2 { // not empty
@@ -136,7 +135,7 @@ func parseSignatureInput(in string) (*signatureParams, error) {
 	for _, param := range parts[1:] {
 		paramParts := strings.Split(param, "=")
 		if len(paramParts) != 2 {
-			return nil, malformedSignatureInput
+			return nil, errMalformedSignatureInput
 		}
 
 		// TODO: error when not wrapped in quotes
@@ -150,19 +149,19 @@ func parseSignatureInput(in string) (*signatureParams, error) {
 		case "created":
 			i, err := strconv.ParseInt(paramParts[1], 10, 64)
 			if err != nil {
-				return nil, malformedSignatureInput
+				return nil, errMalformedSignatureInput
 			}
 			sp.created = time.Unix(i, 0)
 		case "expires":
 			i, err := strconv.ParseInt(paramParts[1], 10, 64)
 			if err != nil {
-				return nil, malformedSignatureInput
+				return nil, errMalformedSignatureInput
 			}
 			t := time.Unix(i, 0)
 			sp.expires = &t
 		default:
 			// TODO: unknown params could be kept? hard to say.
-			return nil, malformedSignatureInput
+			return nil, errMalformedSignatureInput
 		}
 	}
 

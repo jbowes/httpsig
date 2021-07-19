@@ -40,19 +40,19 @@ type verifier struct {
 func (v *verifier) Verify(msg *message) error {
 	sigHdr := msg.Header.Get("Signature")
 	if sigHdr == "" {
-		return notSignedError
+		return errNotSigned
 	}
 
 	paramHdr := msg.Header.Get("Signature-Input")
 	if paramHdr == "" {
-		return notSignedError
+		return errNotSigned
 	}
 
 	sigParts := strings.Split(sigHdr, ", ")
 	paramParts := strings.Split(paramHdr, ", ")
 
 	if len(sigParts) != len(paramParts) {
-		return malformedSignatureError
+		return errMalformedSignature
 	}
 
 	// TODO: could be smarter about selecting the sig to verify, eg based
@@ -62,12 +62,12 @@ func (v *verifier) Verify(msg *message) error {
 	for _, p := range paramParts {
 		pParts := strings.SplitN(p, "=", 2)
 		if len(pParts) != 2 {
-			return malformedSignatureError
+			return errMalformedSignature
 		}
 
 		candidate, err := parseSignatureInput(pParts[1])
 		if err != nil {
-			return malformedSignatureError
+			return errMalformedSignature
 		}
 
 		if _, ok := v.keys[candidate.keyID]; ok {
@@ -78,14 +78,14 @@ func (v *verifier) Verify(msg *message) error {
 	}
 
 	if params == nil {
-		return unknownKeyError
+		return errUnknownKey
 	}
 
 	var signature string
 	for _, s := range sigParts {
 		sParts := strings.SplitN(s, "=", 2)
 		if len(sParts) != 2 {
-			return malformedSignatureError
+			return errMalformedSignature
 		}
 
 		if sParts[0] == sigID {
@@ -96,18 +96,18 @@ func (v *verifier) Verify(msg *message) error {
 	}
 
 	if signature == "" {
-		return malformedSignatureError
+		return errMalformedSignature
 	}
 
 	ver := v.keys[params.keyID]
 	if ver.alg != "" && params.alg != "" && ver.alg != params.alg {
-		return algMismatchError
+		return errAlgMismatch
 	}
 
 	// verify signature. if invalid, error
 	sig, err := base64.StdEncoding.DecodeString(signature)
 	if err != nil {
-		return malformedSignatureError
+		return errMalformedSignature
 	}
 
 	verifier := ver.verifier()
@@ -139,12 +139,12 @@ func (v *verifier) Verify(msg *message) error {
 
 	err = verifier.verify(sig)
 	if err != nil {
-		return invalidSignatureError
+		return errInvalidSignature
 	}
 
 	// TODO: could put in some wiggle room
 	if params.expires != nil && params.expires.After(time.Now()) {
-		return signatureExpiredError
+		return errSignatureExpired
 	}
 
 	return nil
@@ -153,12 +153,12 @@ func (v *verifier) Verify(msg *message) error {
 // XXX use vice here too.
 
 var (
-	notSignedError          = errors.New("signature headers not found")
-	malformedSignatureError = errors.New("unable to parse signature headers")
-	unknownKeyError         = errors.New("unknown key id")
-	algMismatchError        = errors.New("algorithm mismatch for key id")
-	signatureExpiredError   = errors.New("signature expired")
-	invalidSignatureError   = errors.New("invalid signature")
+	errNotSigned          = errors.New("signature headers not found")
+	errMalformedSignature = errors.New("unable to parse signature headers")
+	errUnknownKey         = errors.New("unknown key id")
+	errAlgMismatch        = errors.New("algorithm mismatch for key id")
+	errSignatureExpired   = errors.New("signature expired")
+	errInvalidSignature   = errors.New("invalid signature")
 )
 
 // These error checking funcs aren't needed yet, so don't export them
@@ -204,7 +204,7 @@ func verifyEccP256(pk *ecdsa.PublicKey) verHolder {
 					b := h.Sum(nil)
 
 					if !ecdsa.VerifyASN1(pk, b, s) {
-						return invalidSignatureError
+						return errInvalidSignature
 					}
 
 					return nil
@@ -225,7 +225,7 @@ func verifyHmacSha256(secret []byte) verHolder {
 				w: h,
 				verify: func(in []byte) error {
 					if !hmac.Equal(in, h.Sum(nil)) {
-						return invalidSignatureError
+						return errInvalidSignature
 					}
 					return nil
 				},

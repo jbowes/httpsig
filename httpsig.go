@@ -123,8 +123,6 @@ func NewVerifyMiddleware(opts ...verifyOption) func(http.Handler) http.Handler {
 		rw.WriteHeader(http.StatusBadRequest)
 
 		rw.Write([]byte("invalid required signature"))
-
-		return
 	}
 
 	return func(h http.Handler) http.Handler {
