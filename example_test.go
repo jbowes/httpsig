@@ -14,16 +14,16 @@ const secret = "support-your-local-cat-bonnet-store"
 func Example_round_trip() {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
-		io.WriteString(w, "Your request has a valid signature!")
+		_, _ = io.WriteString(w, "Your request has a valid signature!")
 	})
-	
+
 	middleware := httpsig.NewVerifyMiddleware(httpsig.WithHmacSha256("key1", []byte(secret)))
 	http.Handle("/", middleware(h))
-	go func() { http.ListenAndServe("127.0.0.1:1234", http.DefaultServeMux) }()
+	go func() { _ = http.ListenAndServe("127.0.0.1:1234", http.DefaultServeMux) }()
 
 	// Give the server time to sleep. Terrible, I know.
 	time.Sleep(100 * time.Millisecond)
-	
+
 	client := http.Client{
 		// Wrap the transport:
 		Transport: httpsig.NewSignTransport(http.DefaultTransport,

@@ -134,8 +134,13 @@ func (v *verifier) Verify(msg *message) error {
 		}
 	}
 
-	verifier.w.Write(b.Bytes())
-	canonicalizeSignatureParams(verifier.w, params)
+	if _, err := verifier.w.Write(b.Bytes()); err != nil {
+		return err
+	}
+
+	if err = canonicalizeSignatureParams(verifier.w, params); err != nil {
+		return err
+	}
 
 	err = verifier.verify(sig)
 	if err != nil {
