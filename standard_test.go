@@ -5,7 +5,6 @@
 package httpsig
 
 import (
-	"crypto/ecdsa"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
@@ -167,32 +166,33 @@ func TestVerify_B_2_3(t *testing.T) {
 
 func TestVerify_B_2_4(t *testing.T) {
 	t.Skip("not working yet")
+	/*
+		block, _ := pem.Decode([]byte(testKeyECCP256Pub))
+		if block == nil {
+			panic("could not decode test public key pem")
+		}
 
-	block, _ := pem.Decode([]byte(testKeyECCP256Pub))
-	if block == nil {
-		panic("could not decode test public key pem")
-	}
+		pk, err := x509.ParsePKIXPublicKey(block.Bytes)
+		if err != nil {
+			panic("could not decode test public key: " + err.Error())
+		}
 
-	pk, err := x509.ParsePKIXPublicKey(block.Bytes)
-	if err != nil {
-		panic("could not decode test public key: " + err.Error())
-	}
+		v := &verifier{
+			keys: map[string]verHolder{
+				"test-key-ecc-p256": verifyEccP256(pk.(*ecdsa.PublicKey)),
+			},
 
-	v := &verifier{
-		keys: map[string]verHolder{
-			"test-key-ecc-p256": verifyEccP256(pk.(*ecdsa.PublicKey)),
-		},
+			nowFunc: func() time.Time { return time.Unix(1618884475, 0) },
+		}
 
-		nowFunc: func() time.Time { return time.Unix(1618884475, 0) },
-	}
-
-	req := testReq()
-	req.Header.Set("Signature-Input", `sig1=("date" "content-type" "digest" "content-length");created=1618884475;keyid="test-key-ecc-p256"`)
-	req.Header.Set("Signature", `sig1=:3zmRDW6r50/RETqqhtx/N5sdd5eTh8xmHdsrYRK9wK4rCNEwLjCOBlcQxTL2oJTCWGRkuqE2r9KyqZFY9jd+NQ==:`)
-	err = v.Verify(req)
-	if err != nil {
-		t.Error("verification failed:", err)
-	}
+		req := testReq()
+		req.Header.Set("Signature-Input", `sig1=("date" "content-type" "digest" "content-length");created=1618884475;keyid="test-key-ecc-p256"`)
+		req.Header.Set("Signature", `sig1=:3zmRDW6r50/RETqqhtx/N5sdd5eTh8xmHdsrYRK9wK4rCNEwLjCOBlcQxTL2oJTCWGRkuqE2r9KyqZFY9jd+NQ==:`)
+		err = v.Verify(req)
+		if err != nil {
+			t.Error("verification failed:", err)
+		}
+	*/
 }
 
 func TestVerify_B_2_5(t *testing.T) {
@@ -221,6 +221,8 @@ func TestVerify_B_2_5(t *testing.T) {
 
 // The following keypairs are taken from the Draft Standard, so we may recreate the examples in tests.
 // If your robot scans this repo and says it's leaking keys I will be mildly amused.
+
+/*
 
 var testKeyRSA = `
 -----BEGIN RSA PRIVATE KEY-----
@@ -282,6 +284,7 @@ S7Fnk6ZVVVHsxjtaHy1uJGFlaZzKR4AGNaUTOJMs6NadzCmGPAxNQQOCqoUjn4XR
 rOjr9w349JooGXhOxbu8nOxX
 -----END PRIVATE KEY-----
 `
+*/
 
 var testKeyRSAPSSPub = `
 -----BEGIN PUBLIC KEY-----
@@ -295,6 +298,7 @@ aOT9v6d+nb4bnNkQVklLQ3fVAvJm+xdDOp9LCNCN48V2pnDOkFV6+U9nV5oyc6XI
 -----END PUBLIC KEY-----
    `
 
+/*
 var testKeyECCP256 = `
 -----BEGIN EC PRIVATE KEY-----
 MHcCAQEEIFKbhfNZfpDsW43+0+JjUr9K+bTeuxopu653+hBaXGA7oAoGCCqGSM49
@@ -309,5 +313,6 @@ MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEqIVYZVLCrPZHGHjP17CTW0/+D9Lf
 w0EkjqF7xB4FivAxzic30tMM4GF+hR6Dxh71Z50VGGdldkkDXZCnTNnoXQ==
 -----END PUBLIC KEY-----
 `
+*/
 
 var testSharedSecret = `uzvJfB4u3N0Jy4T7NZ75MDVcr8zSTInedJtkgcu46YW4XByzNJjxBdtjUkdJPBtbmHhIDi6pcl8jsasjlTMtDQ==`

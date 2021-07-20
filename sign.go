@@ -84,8 +84,14 @@ func (s *signer) Sign(msg *message) (http.Header, error) {
 		sps[fmt.Sprintf("sig%d", i)] = sp.canonicalize()
 
 		signer := si.signer()
-		signer.w.Write(b.Bytes())
-		canonicalizeSignatureParams(signer.w, sp)
+		if _, err := signer.w.Write(b.Bytes()); err != nil {
+			return nil, err
+		}
+
+		if err := canonicalizeSignatureParams(signer.w, sp); err != nil {
+			return nil, err
+		}
+
 		sigs[fmt.Sprintf("sig%d", i)] = base64.StdEncoding.EncodeToString(signer.sign())
 
 		i++
