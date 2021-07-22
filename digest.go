@@ -26,5 +26,5 @@ func verifyDigest(in []byte, dig string) bool {
 	// TODO: case insensitity for incoming digest?
 	calc := calcDigest(in)
 
-	return subtle.ConstantTimeCompare([]byte(dig), []byte(calc)) == 0
+	return subtle.ConstantTimeCompare([]byte(dig), []byte(calc)) == 1
 }
