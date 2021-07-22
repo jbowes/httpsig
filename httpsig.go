@@ -76,7 +76,7 @@ func NewSignTransport(transport http.RoundTripper, opts ...signOption) http.Roun
 
 		// Always set a digest (for now)
 		// TODO: we could skip setting digest on an empty body if content-length is included in the sig
-		r.Header.Set("Digest", calcDigest(b.Bytes()))
+		nr.Header.Set("Digest", calcDigest(b.Bytes()))
 
 		msg := messageFromRequest(nr)
 		hdr, err := s.Sign(msg)
