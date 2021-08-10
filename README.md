@@ -7,7 +7,7 @@
 <p align="center"><i>Standards-based HTTP request signing and verification for <a href="https://golang.org">Go</a></i></p>
 
 <div align="center">
-  <a href="https://godoc.org/github.com/jbowes/httpsig"><img src="https://godoc.org/github.com/jbowes/httpsig?status.svg" alt="GoDoc"></a>
+  <a href="https://pkg.go.dev/github.com/jbowes/httpsig"><img src="https://pkg.go.dev/badge/github.com/jbowes/httpsig.svg" alt="Go Reference"></a>
   <img alt="Alpha Quality" src="https://img.shields.io/badge/status-ALPHA-orange.svg" >
   <a href="https://github.com/jbowes/httpsig/actions/workflows/go.yml"><img alt="Build Status" src="https://github.com/jbowes/httpsig/actions/workflows/go.yml/badge.svg?branch=main"></a>
   <a href="./LICENSE"><img alt="BSD license" src="https://img.shields.io/badge/license-BSD-blue.svg"></a>
@@ -124,11 +124,18 @@ I would love your help!
 - Improving this `README` or adding other documentation to `httpsig`.
 - Letting [me] know if you're using `httpsig`.
 
+<!-- These are mostly for pkg.go.dev, to show up in the header -->
+## Links
+
+- [Signing HTTP Messages standard][msgsig]
+- [Digest Headers standard][dighdr]
+- [Modern webhook signatures][myblog]
 
 <!-- Other links -->
 [go]: https://golang.org
 [msgsig]: https://datatracker.ietf.org/doc/draft-ietf-httpbis-message-signatures/
 [dighdr]: https://datatracker.ietf.org/doc/draft-ietf-httpbis-digest-headers/
+[myblog]: https://repl.ca/modern-webhook-signatures/
 
 [godoc]: https://pkg.go.dev/github.com/jbowes/httpsig
 [issues]: ./issues
