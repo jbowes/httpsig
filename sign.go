@@ -45,23 +45,27 @@ func (s *signer) Sign(msg *message) (http.Header, error) {
 
 	// canonicalize headers
 	for _, h := range s.headers {
-		// optionally canonicalize request path via magic string
-		if h == "@request-target" {
-			err := canonicalizeRequestTarget(&b, msg.Method, msg.URL)
-			if err != nil {
-				return nil, err
-			}
-
-			items = append(items, h)
-			continue
-		}
-
 		// Skip unset headers
-		if len(msg.Header.Values(h)) == 0 {
+		if len(h) > 0 && h[0] != '@' && len(msg.Header.Values(h)) == 0 {
 			continue
 		}
 
-		err := canonicalizeHeader(&b, h, msg.Header)
+		// handle specialty components, section 2.3
+		var err error
+		switch h {
+		case "@method":
+			err = canonicalizeMethod(&b, msg.Method)
+		case "@path":
+			err = canonicalizePath(&b, msg.URL.Path)
+		case "@query":
+			err = canonicalizeQuery(&b, msg.URL.RawQuery)
+		case "@authority":
+			err = canonicalizeAuthority(&b, msg.Authority)
+		default:
+			// handle default (header) components
+			err = canonicalizeHeader(&b, h, msg.Header)
+		}
+
 		if err != nil {
 			return nil, err
 		}

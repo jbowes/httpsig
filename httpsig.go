@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-var defaultHeaders = []string{"content-type", "content-length", "host"} // also request path and digest
+var defaultHeaders = []string{"content-type", "content-length"} // also method, path, query, and digest
 
 func sliceHas(haystack []string, needle string) bool {
 	for _, n := range haystack {
@@ -48,13 +48,11 @@ func NewSignTransport(transport http.RoundTripper, opts ...signOption) http.Roun
 
 	// TODO: normalize headers? lowercase & de-dupe
 
-	// request path first, for aesthetics
-	if !sliceHas(s.headers, "@request-target") {
-		s.headers = append([]string{"@request-target"}, s.headers...)
-	}
-
-	if !sliceHas(s.headers, "digest") {
-		s.headers = append(s.headers, "digest")
+	// specialty components and digest first, for aesthetics
+	for _, comp := range []string{"digest", "@query", "@path", "@method"} {
+		if !sliceHas(s.headers, comp) {
+			s.headers = append([]string{comp}, s.headers...)
+		}
 	}
 
 	return rt(func(r *http.Request) (*http.Response, error) {

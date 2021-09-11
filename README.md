@@ -18,7 +18,7 @@
 ## Introduction
 
 `httpsig` provides support for signing and verifying HTTP requests according
-to the [Signing HTTP Messages][msgsig] draft standard. This standard focuses
+to the [HTTP Message Signatures][msgsig] draft standard. This standard focuses
 on signing headers and request paths, and you probably want to sign the
 request body too, so body digest calculation according to
 [Digest Headers][dighdr] is included.
@@ -79,7 +79,7 @@ For more usage examples and documentation, see the [godoc refernce][godoc]
 
 ## The Big Feature Matrix
 
-This implementation is based on version `05` of [Signing HTTP Messages][msgsig]
+This implementation is based on version `06` of [HTTP Message Signatures][msgsig]
 (`draft-ietf-htttpbis-message-signatures-05` from 8 June 2021). Digest
 computation is based on version `05` of [Digest Headers][dighdr]
 (`draft-ietf-httpbis-digest-headers-05` from 13 April 2021).
@@ -92,6 +92,17 @@ computation is based on version `05` of [Digest Headers][dighdr]
 | verify responses                |   | ❌ |                                                                        |
 | add `expires` to signature      |   | ❌ | sorely needed                                                          |
 | enforce `expires` in verify     | ✅ |   |                                                                        |
+| `@method` component             | ✅ |   |                                                                        |
+| `@authority` component          | ✅ |   |                                                                        |
+| `@scheme` component             |   | ❌ |                                                                        |
+| `@target-uri` component         |   | ❌ |                                                                        |
+| `@request-target` component     |   | ❌ | Semantics changed in draft-06, no longer recommented for use.          |
+| `@path` component               | ✅ |   |                                                                        |
+| `@query` component              | ✅ |   | Encoding handling is missing.                                          |
+| `@query-params` component       |   | ❌ |                                                                        |
+| `@status` component             |   | ❌ |                                                                        |
+| request-response binding        |   | ❌ |                                                                        |
+| `Accept-Signature` header       |   | ❌ |                                                                        |
 | create multiple signatures      | ✅ |   |                                                                        |
 | verify from multiple signatures | ✅ |   |                                                                        |
 | `rsa-pss-sha512`                | ✅ |   |                                                                        |
@@ -100,6 +111,8 @@ computation is based on version `05` of [Digest Headers][dighdr]
 | `ecdsa-p256-sha256`             | ✅ |   |                                                                        |
 | custom signature formats        |   | ❌ | `eddsa` is not part of the spec, so custom support here would be nice! |
 | JSON Web Signatures             |   | ❌ | JWS doesn't support any additional algs, but it is part of the spec    |
+| Signature-Input as trailer      |   | ❌ | Trailers can be dropped. accept for verification only.                 |
+| Signature as trailer            |   | ❌ | Trailers can be dropped. accept for verification only.                 |
 | request digests                 | ✅ |   |                                                                        |
 | response digests                |   | ❌ | Tricky to support for signature use according to the spec              |
 | multiple digests                |   | ❌ |                                                                        |
@@ -128,7 +141,7 @@ I would love your help!
 <!-- These are mostly for pkg.go.dev, to show up in the header -->
 ## Links
 
-- [Signing HTTP Messages standard][msgsig]
+- [HTTP Message Signatures standard][msgsig]
 - [Digest Headers standard][dighdr]
 - [Modern webhook signatures][myblog]
 
