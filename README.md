@@ -90,7 +90,8 @@ computation is based on version `05` of [Digest Headers][dighdr]
 | verify requests                 | ✅ |   |                                                                        |
 | sign responses                  |   | ❌ |                                                                        |
 | verify responses                |   | ❌ |                                                                        |
-| enforce `expires`               |   | ❌ | sorely needed                                                          |
+| add `expires` to signature      |   | ❌ | sorely needed                                                          |
+| enforce `expires` in verify     | ✅ |   |                                                                        |
 | create multiple signatures      | ✅ |   |                                                                        |
 | verify from multiple signatures | ✅ |   |                                                                        |
 | `rsa-pss-sha512`                | ✅ |   |                                                                        |
