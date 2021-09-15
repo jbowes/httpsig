@@ -18,18 +18,20 @@ import (
 // message is a minimal representation of an HTTP request or response, containing the values
 // needed to construct a signature.
 type message struct {
-	Method string
-	URL    *nurl.URL
-	Header http.Header
+	Method    string
+	Authority string
+	URL       *nurl.URL
+	Header    http.Header
 }
 
 func messageFromRequest(r *http.Request) *message {
 	hdr := r.Header.Clone()
 	hdr.Set("Host", r.Host)
 	return &message{
-		Method: r.Method,
-		URL:    r.URL,
-		Header: hdr,
+		Method:    r.Method,
+		Authority: r.Host,
+		URL:       r.URL,
+		Header:    hdr,
 	}
 }
 
@@ -50,15 +52,36 @@ func canonicalizeHeader(out io.Writer, name string, hdr http.Header) error {
 	return err
 }
 
-func canonicalizeRequestTarget(out io.Writer, method string, url *nurl.URL) error {
-	// Section 2.3.1 covers canonicalization the request target.
+func canonicalizeMethod(out io.Writer, method string) error {
+	// Section 2.3.2 covers canonicalization of the method.
 	// Section 2.4 step 2 covers using it as input.
-	_, err := fmt.Fprintf(out, "\"@request-target\": %s %s\n", strings.ToLower(method), url.RequestURI())
+	_, err := fmt.Fprintf(out, "\"@method\": %s\n", strings.ToUpper(method)) // Method should always be caps.
+	return err
+}
+
+func canonicalizeAuthority(out io.Writer, authority string) error {
+	// Section 2.3.4 covers canonicalization of the authority.
+	// Section 2.4 step 2 covers using it as input.
+	_, err := fmt.Fprintf(out, "\"@authority\": %s\n", authority)
+	return err
+}
+
+func canonicalizePath(out io.Writer, path string) error {
+	// Section 2.3.7 covers canonicalization of the path.
+	// Section 2.4 step 2 covers using it as input.
+	_, err := fmt.Fprintf(out, "\"@path\": %s\n", path)
+	return err
+}
+
+func canonicalizeQuery(out io.Writer, rawQuery string) error {
+	// Section 2.3.8 covers canonicalization of the query.
+	// Section 2.4 step 2 covers using it as input.
+	_, err := fmt.Fprintf(out, "\"@query\": ?%s\n", rawQuery) // TODO: decode percent encodings
 	return err
 }
 
 func canonicalizeSignatureParams(out io.Writer, sp *signatureParams) error {
-	// Section 2.3.2 covers canonicalization of the signature parameters
+	// Section 2.3.1 covers canonicalization of the signature parameters
 
 	// TODO: Deal with all the potential print errs. sigh.
 

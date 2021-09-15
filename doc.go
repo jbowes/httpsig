@@ -4,7 +4,7 @@
 
 /*
 Package httpsig signs and verifies HTTP requests (with body digests) according
-to the "Signing HTTP Messages" draft standard
+to the "HTTP Message Signatures" draft standard
 https://datatracker.ietf.org/doc/draft-ietf-httpbis-message-signatures/
 */
 package httpsig

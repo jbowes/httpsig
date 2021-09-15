@@ -119,16 +119,23 @@ func (v *verifier) Verify(msg *message) error {
 	// canonicalize headers
 	// TODO: wrap the errors within
 	for _, h := range params.items {
-		// optionally canonicalize request path via magic string
-		if h == "@request-target" {
-			err := canonicalizeRequestTarget(&b, msg.Method, msg.URL)
-			if err != nil {
-				return err
-			}
-			continue
+
+		// handle specialty components, section 2.3
+		var err error
+		switch h {
+		case "@method":
+			err = canonicalizeMethod(&b, msg.Method)
+		case "@path":
+			err = canonicalizePath(&b, msg.URL.Path)
+		case "@query":
+			err = canonicalizeQuery(&b, msg.URL.RawQuery)
+		case "@authority":
+			err = canonicalizeAuthority(&b, msg.Authority)
+		default:
+			// handle default (header) components
+			err = canonicalizeHeader(&b, h, msg.Header)
 		}
 
-		err := canonicalizeHeader(&b, h, msg.Header)
 		if err != nil {
 			return err
 		}
