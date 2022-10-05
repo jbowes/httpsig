@@ -8,7 +8,7 @@ import (
 	"bytes"
 	"crypto/ecdsa"
 	"crypto/rsa"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 )
@@ -68,7 +68,7 @@ func NewSignTransport(transport http.RoundTripper, opts ...signOption) http.Roun
 			defer r.Body.Close()
 
 			if n != 0 {
-				r.Body = ioutil.NopCloser(bytes.NewReader(b.Bytes()))
+				r.Body = io.NopCloser(bytes.NewReader(b.Bytes()))
 			}
 		}
 
@@ -144,7 +144,7 @@ func NewVerifyMiddleware(opts ...verifyOption) func(http.Handler) http.Handler {
 				defer r.Body.Close()
 
 				if n != 0 {
-					r.Body = ioutil.NopCloser(bytes.NewReader(b.Bytes()))
+					r.Body = io.NopCloser(bytes.NewReader(b.Bytes()))
 				}
 			}
 
