@@ -7,6 +7,7 @@ package httpsig
 import (
 	"bytes"
 	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/rsa"
 	"io"
 	"net/http"
@@ -217,11 +218,27 @@ func WithSignEcdsaP256Sha256(keyID string, pk *ecdsa.PrivateKey) signOption {
 	}
 }
 
+// WithSignEcdsaP256Sha256 adds signing using `ecdsa-p256-sha256` with the given private key
+// using the given key id.
+func WithSignEcdsaEd25519Sha256(keyID string, pk ed25519.PrivateKey) signOption {
+	return &optImpl{
+		s: func(s *signer) { s.keys[keyID] = signEccEd25519(pk) },
+	}
+}
+
 // WithVerifyEcdsaP256Sha256 adds signature verification using `ecdsa-p256-sha256` with the
 // given public key using the given key id.
 func WithVerifyEcdsaP256Sha256(keyID string, pk *ecdsa.PublicKey) verifyOption {
 	return &optImpl{
 		v: func(v *verifier) { v.keys[keyID] = verifyEccP256(pk) },
+	}
+}
+
+// WithVerifyEcdsaP256Sha256 adds signature verification using `ecdsa-ed25519-sha256` with the
+// given public key using the given key id.
+func WithVerifyEcdsaEd25519Sha256(keyID string, pk ed25519.PublicKey) verifyOption {
+	return &optImpl{
+		v: func(v *verifier) { v.keys[keyID] = verifyEccEd25519(pk) },
 	}
 }
 
