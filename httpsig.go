@@ -69,6 +69,7 @@ func NewSignTransport(transport http.RoundTripper, opts ...signOption) http.Roun
 
 			if n != 0 {
 				r.Body = io.NopCloser(bytes.NewReader(b.Bytes()))
+				nr.Body = io.NopCloser(bytes.NewReader(b.Bytes()))
 			}
 		}
 
