@@ -14,6 +14,7 @@ import (
 	"crypto/sha512"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"io"
 	"strings"
 	"time"
@@ -59,6 +60,7 @@ func (v *verifier) Verify(msg *message) error {
 	// on algorithm
 	var sigID string
 	var params *signatureParams
+	var paramsRaw string
 	for _, p := range paramParts {
 		pParts := strings.SplitN(p, "=", 2)
 		if len(pParts) != 2 {
@@ -73,6 +75,7 @@ func (v *verifier) Verify(msg *message) error {
 		if _, ok := v.keys[candidate.keyID]; ok {
 			sigID = pParts[0]
 			params = candidate
+			paramsRaw = pParts[1]
 			break
 		}
 	}
@@ -140,12 +143,9 @@ func (v *verifier) Verify(msg *message) error {
 			return err
 		}
 	}
+	fmt.Fprintf(&b, "\"@signature-params\": %s", paramsRaw)
 
 	if _, err := verifier.w.Write(b.Bytes()); err != nil {
-		return err
-	}
-
-	if err = canonicalizeSignatureParams(verifier.w, params); err != nil {
 		return err
 	}
 
