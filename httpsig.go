@@ -112,18 +112,18 @@ func NewVerifier(opts ...verifyOption) *Verifier {
 	return &Verifier{v}
 }
 
-func (v *Verifier) Verify(r *http.Request) error {
+func (v *Verifier) Verify(r *http.Request) (keyID string, err error) {
 	msg := messageFromRequest(r)
-	err := v.verifier.Verify(msg)
+	keyID, err = v.verifier.Verify(msg)
 	if err != nil {
-		return err
+		return keyID, err
 	}
 
 	b := &bytes.Buffer{}
 	if r.Body != nil {
 		n, err := b.ReadFrom(r.Body)
 		if err != nil {
-			return err
+			return keyID, err
 		}
 		r.Body.Close()
 
@@ -136,10 +136,10 @@ func (v *Verifier) Verify(r *http.Request) error {
 	// TODO: option to require this?
 	if dig := r.Header.Get("Digest"); dig != "" {
 		if !verifyDigest(b.Bytes(), dig) {
-			return errors.New("digest mismatch")
+			return keyID, errors.New("digest mismatch")
 		}
 	}
-	return nil
+	return keyID, nil
 }
 
 // NewSignTransport returns a new client transport that wraps the provided transport with
@@ -187,7 +187,7 @@ func NewVerifyMiddleware(opts ...verifyOption) func(http.Handler) http.Handler {
 
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-			if err := v.Verify(r); err != nil {
+			if _, err := v.Verify(r); err != nil {
 				serveErr(rw)
 				return
 			}

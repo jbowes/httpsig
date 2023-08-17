@@ -38,22 +38,22 @@ type verifier struct {
 }
 
 // XXX: note about fail fast.
-func (v *verifier) Verify(msg *message) error {
+func (v *verifier) Verify(msg *message) (keyID string, err error) {
 	sigHdr := msg.Header.Get("Signature")
 	if sigHdr == "" {
-		return errNotSigned
+		return "", errNotSigned
 	}
 
 	paramHdr := msg.Header.Get("Signature-Input")
 	if paramHdr == "" {
-		return errNotSigned
+		return "", errNotSigned
 	}
 
 	sigParts := strings.Split(sigHdr, ", ")
 	paramParts := strings.Split(paramHdr, ", ")
 
 	if len(sigParts) != len(paramParts) {
-		return errMalformedSignature
+		return "", errMalformedSignature
 	}
 
 	// TODO: could be smarter about selecting the sig to verify, eg based
@@ -63,12 +63,12 @@ func (v *verifier) Verify(msg *message) error {
 	for _, p := range paramParts {
 		pParts := strings.SplitN(p, "=", 2)
 		if len(pParts) != 2 {
-			return errMalformedSignature
+			return "", errMalformedSignature
 		}
 
 		candidate, err := parseSignatureInput(pParts[1])
 		if err != nil {
-			return errMalformedSignature
+			return "", errMalformedSignature
 		}
 
 		if _, ok := v.ResolveKey(candidate.keyID); ok {
@@ -79,14 +79,14 @@ func (v *verifier) Verify(msg *message) error {
 	}
 
 	if params == nil {
-		return errUnknownKey
+		return "", errUnknownKey
 	}
 
 	var signature string
 	for _, s := range sigParts {
 		sParts := strings.SplitN(s, "=", 2)
 		if len(sParts) != 2 {
-			return errMalformedSignature
+			return params.keyID, errMalformedSignature
 		}
 
 		if sParts[0] == sigID {
@@ -97,18 +97,18 @@ func (v *verifier) Verify(msg *message) error {
 	}
 
 	if signature == "" {
-		return errMalformedSignature
+		return params.keyID, errMalformedSignature
 	}
 
 	ver, _ := v.ResolveKey(params.keyID)
 	if ver.alg != "" && params.alg != "" && ver.alg != params.alg {
-		return errAlgMismatch
+		return params.keyID, errAlgMismatch
 	}
 
 	// verify signature. if invalid, error
 	sig, err := base64.StdEncoding.DecodeString(signature)
 	if err != nil {
-		return errMalformedSignature
+		return params.keyID, errMalformedSignature
 	}
 
 	verifier := ver.verifier()
@@ -138,29 +138,29 @@ func (v *verifier) Verify(msg *message) error {
 		}
 
 		if err != nil {
-			return err
+			return params.keyID, err
 		}
 	}
 
 	if _, err := verifier.w.Write(b.Bytes()); err != nil {
-		return err
+		return params.keyID, err
 	}
 
 	if err = canonicalizeSignatureParams(verifier.w, params); err != nil {
-		return err
+		return params.keyID, err
 	}
 
 	err = verifier.verify(sig)
 	if err != nil {
-		return errInvalidSignature
+		return params.keyID, errInvalidSignature
 	}
 
 	// TODO: could put in some wiggle room
 	if params.expires != nil && params.expires.After(time.Now()) {
-		return errSignatureExpired
+		return params.keyID, errSignatureExpired
 	}
 
-	return nil
+	return params.keyID, nil
 }
 
 func (v *verifier) ResolveKey(keyID string) (verHolder, bool) {
