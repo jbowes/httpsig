@@ -30,7 +30,8 @@ type verHolder struct {
 }
 
 type verifier struct {
-	keys map[string]verHolder
+	keys     map[string]verHolder
+	resolver VerifyingKeyResolver
 
 	// For testing
 	nowFunc func() time.Time
@@ -70,7 +71,7 @@ func (v *verifier) Verify(msg *message) error {
 			return errMalformedSignature
 		}
 
-		if _, ok := v.keys[candidate.keyID]; ok {
+		if _, ok := v.ResolveKey(candidate.keyID); ok {
 			sigID = pParts[0]
 			params = candidate
 			break
@@ -99,7 +100,7 @@ func (v *verifier) Verify(msg *message) error {
 		return errMalformedSignature
 	}
 
-	ver := v.keys[params.keyID]
+	ver, _ := v.ResolveKey(params.keyID)
 	if ver.alg != "" && params.alg != "" && ver.alg != params.alg {
 		return errAlgMismatch
 	}
@@ -160,6 +161,33 @@ func (v *verifier) Verify(msg *message) error {
 	}
 
 	return nil
+}
+
+func (v *verifier) ResolveKey(keyID string) (verHolder, bool) {
+	if holder, ok := v.keys[keyID]; ok {
+		return holder, true
+	}
+
+	if v.resolver != nil {
+		key := v.resolver.Resolve(keyID)
+		if key != nil {
+			in := bytes.NewBuffer(make([]byte, 0, 1024))
+			holder := verHolder{
+				verifier: func() verImpl {
+					return verImpl{
+						w: in,
+						verify: func(sig []byte) error {
+							return key.Verify(in.Bytes(), sig)
+						},
+					}
+				},
+			}
+			v.keys[keyID] = holder
+			return holder, true
+		}
+	}
+
+	return verHolder{}, false
 }
 
 // XXX use vice here too.

@@ -87,6 +87,14 @@ func (s *Signer) Sign(r *http.Request) error {
 	return nil
 }
 
+type VerifyingKey interface {
+	Verify(data []byte, signature []byte) error
+}
+
+type VerifyingKeyResolver interface {
+	Resolve(keyID string) VerifyingKey
+}
+
 type Verifier struct {
 	verifier
 }
@@ -217,6 +225,12 @@ func WithHeaders(hdr ...string) signOption {
 	// TODO: use this to implement required headers in verify?
 	return &optImpl{
 		s: func(s *signer) { s.headers = hdr },
+	}
+}
+
+func WithVerifyingKeyResolver(resolver VerifyingKeyResolver) verifyOption {
+	return &optImpl{
+		v: func(v *verifier) { v.resolver = resolver },
 	}
 }
 
