@@ -171,9 +171,9 @@ func (v *verifier) ResolveKey(keyID string) (verHolder, bool) {
 	if v.resolver != nil {
 		key := v.resolver.Resolve(keyID)
 		if key != nil {
-			in := bytes.NewBuffer(make([]byte, 0, 1024))
 			holder := verHolder{
 				verifier: func() verImpl {
+					in := bytes.NewBuffer(make([]byte, 0, 1024))
 					return verImpl{
 						w: in,
 						verify: func(sig []byte) error {
