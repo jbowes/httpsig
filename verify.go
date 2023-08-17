@@ -227,7 +227,6 @@ func verifyEccP256(pk *ecdsa.PublicKey) verHolder {
 }
 
 func verifyHmacSha256(secret []byte) verHolder {
-	// TODO: add alg
 	return verHolder{
 		alg: "hmac-sha256",
 		verifier: func() verImpl {
