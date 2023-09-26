@@ -56,8 +56,6 @@ func NewSignTransport(transport http.RoundTripper, opts ...signOption) http.Roun
 	}
 
 	return rt(func(r *http.Request) (*http.Response, error) {
-		nr := r.Clone(r.Context())
-
 		b := &bytes.Buffer{}
 		if r.Body != nil {
 			n, err := b.ReadFrom(r.Body)
@@ -69,25 +67,24 @@ func NewSignTransport(transport http.RoundTripper, opts ...signOption) http.Roun
 
 			if n != 0 {
 				r.Body = io.NopCloser(bytes.NewReader(b.Bytes()))
-				nr.Body = io.NopCloser(bytes.NewReader(b.Bytes()))
 			}
 		}
 
 		// Always set a digest (for now)
 		// TODO: we could skip setting digest on an empty body if content-length is included in the sig
-		nr.Header.Set("Digest", calcDigest(b.Bytes()))
+		r.Header.Set("Digest", calcDigest(b.Bytes()))
 
-		msg := messageFromRequest(nr)
+		msg := messageFromRequest(r)
 		hdr, err := s.Sign(msg)
 		if err != nil {
 			return nil, err
 		}
 
 		for k, v := range hdr {
-			nr.Header[k] = v
+			r.Header[k] = v
 		}
 
-		return transport.RoundTrip(nr)
+		return transport.RoundTrip(r)
 	})
 }
 
