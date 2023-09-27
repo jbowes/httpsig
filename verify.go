@@ -229,7 +229,7 @@ func verifyEccP256(pk *ecdsa.PublicKey) verHolder {
 
 func verifyEccEd25519(pk ed25519.PublicKey) verHolder {
 	return verHolder{
-		alg: "eddsa-ed25519-sha256",
+		alg: "ed25519",
 		verifier: func() verImpl {
 			h := sha256.New()
 

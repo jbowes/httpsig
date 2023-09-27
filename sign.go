@@ -165,16 +165,14 @@ func signEccP256(pk *ecdsa.PrivateKey) sigHolder {
 
 func signEccEd25519(pk ed25519.PrivateKey) sigHolder {
 	return sigHolder{
-		alg: "eddsa-ed25519-sha256",
+		alg: "ed25519",
 		signer: func() sigImpl {
-			h := sha256.New()
+			h := bytes.NewBuffer(nil)
 
 			return sigImpl{
 				w: h,
 				sign: func() []byte {
-					b := h.Sum(nil)
-
-					return ed25519.Sign(pk, b)
+					return ed25519.Sign(pk, h.Bytes())
 				},
 			}
 		},
