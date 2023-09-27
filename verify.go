@@ -231,17 +231,14 @@ func verifyEccEd25519(pk ed25519.PublicKey) verHolder {
 	return verHolder{
 		alg: "ed25519",
 		verifier: func() verImpl {
-			h := sha256.New()
+			h := bytes.NewBuffer(nil)
 
 			return verImpl{
 				w: h,
 				verify: func(s []byte) error {
-					b := h.Sum(nil)
-
-					if !ed25519.Verify(pk, b, s) {
+					if !ed25519.Verify(pk, h.Bytes(), s) {
 						return errInvalidSignature
 					}
-
 					return nil
 				},
 			}
