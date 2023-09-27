@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"crypto"
 	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/hmac"
 	"crypto/rsa"
 	"crypto/sha256"
@@ -219,6 +220,25 @@ func verifyEccP256(pk *ecdsa.PublicKey) verHolder {
 						return errInvalidSignature
 					}
 
+					return nil
+				},
+			}
+		},
+	}
+}
+
+func verifyEccEd25519(pk ed25519.PublicKey) verHolder {
+	return verHolder{
+		alg: "ed25519",
+		verifier: func() verImpl {
+			h := bytes.NewBuffer(nil)
+
+			return verImpl{
+				w: h,
+				verify: func(s []byte) error {
+					if !ed25519.Verify(pk, h.Bytes(), s) {
+						return errInvalidSignature
+					}
 					return nil
 				},
 			}

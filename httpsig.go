@@ -7,6 +7,7 @@ package httpsig
 import (
 	"bytes"
 	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/rsa"
 	"io"
 	"net/http"
@@ -56,8 +57,6 @@ func NewSignTransport(transport http.RoundTripper, opts ...signOption) http.Roun
 	}
 
 	return rt(func(r *http.Request) (*http.Response, error) {
-		nr := r.Clone(r.Context())
-
 		b := &bytes.Buffer{}
 		if r.Body != nil {
 			n, err := b.ReadFrom(r.Body)
@@ -74,19 +73,19 @@ func NewSignTransport(transport http.RoundTripper, opts ...signOption) http.Roun
 
 		// Always set a digest (for now)
 		// TODO: we could skip setting digest on an empty body if content-length is included in the sig
-		nr.Header.Set("Digest", calcDigest(b.Bytes()))
+		r.Header.Set("Digest", calcDigest(b.Bytes()))
 
-		msg := messageFromRequest(nr)
+		msg := messageFromRequest(r)
 		hdr, err := s.Sign(msg)
 		if err != nil {
 			return nil, err
 		}
 
 		for k, v := range hdr {
-			nr.Header[k] = v
+			r.Header[k] = v
 		}
 
-		return transport.RoundTrip(nr)
+		return transport.RoundTrip(r)
 	})
 }
 
@@ -217,11 +216,27 @@ func WithSignEcdsaP256Sha256(keyID string, pk *ecdsa.PrivateKey) signOption {
 	}
 }
 
+// WithSignEddsaEd25519 adds signing using `eddsa-ed25519` with the given private key
+// using the given key id.
+func WithSignEddsaEd25519(keyID string, pk ed25519.PrivateKey) signOption {
+	return &optImpl{
+		s: func(s *signer) { s.keys[keyID] = signEccEd25519(pk) },
+	}
+}
+
 // WithVerifyEcdsaP256Sha256 adds signature verification using `ecdsa-p256-sha256` with the
 // given public key using the given key id.
 func WithVerifyEcdsaP256Sha256(keyID string, pk *ecdsa.PublicKey) verifyOption {
 	return &optImpl{
 		v: func(v *verifier) { v.keys[keyID] = verifyEccP256(pk) },
+	}
+}
+
+// WithVerifyEddsaEd25519Sha256 adds signature verification using `eddsa-ed25519-sha256` with the
+// given public key using the given key id.
+func WithVerifyEddsaEd25519(keyID string, pk ed25519.PublicKey) verifyOption {
+	return &optImpl{
+		v: func(v *verifier) { v.keys[keyID] = verifyEccEd25519(pk) },
 	}
 }
 

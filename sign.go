@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"crypto"
 	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/rsa"
@@ -156,6 +157,22 @@ func signEccP256(pk *ecdsa.PrivateKey) sigHolder {
 					// TODO: might have to deal with this error :)
 					sig, _ := ecdsa.SignASN1(rand.Reader, pk, b)
 					return sig
+				},
+			}
+		},
+	}
+}
+
+func signEccEd25519(pk ed25519.PrivateKey) sigHolder {
+	return sigHolder{
+		alg: "ed25519",
+		signer: func() sigImpl {
+			h := bytes.NewBuffer(nil)
+
+			return sigImpl{
+				w: h,
+				sign: func() []byte {
+					return ed25519.Sign(pk, h.Bytes())
 				},
 			}
 		},
