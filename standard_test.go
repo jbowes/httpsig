@@ -221,6 +221,37 @@ func TestVerify_B_2_5(t *testing.T) {
 	}
 }
 
+func TestVerify_AudioHook(t *testing.T) {
+	k, err := base64.StdEncoding.DecodeString("TXlTdXBlclNlY3JldEtleVRlbGxOby0xITJAMyM0JDU=")
+	if err != nil {
+		panic("could not decode test shared secret")
+	}
+
+	v := &verifier{
+		keys: map[string]verHolder{
+			"SGVsbG8sIEkgYW0gdGhlIEFQSSBrZXkh": verifyHmacSha256(k),
+		},
+
+		nowFunc: func() time.Time { return time.Unix(1618884475, 0) },
+	}
+
+	req := testReq()
+	req.URL = parse("/api/v1/voicebiometrics/ws")
+	req.Authority = "audiohook.example.com"
+	req.Header.Set("Host", "audiohook.example.com")
+	req.Header.Set("Audiohook-Organization-Id", "d7934305-0972-4844-938e-9060eef73d05")
+	req.Header.Set("Audiohook-Correlation-Id", "e160e428-53e2-487c-977d-96989bf5c99d")
+	req.Header.Set("Audiohook-Session-Id", "30b0e395-84d3-4570-ac13-9a62d8f514c0")
+	req.Header.Set("X-API-KEY", "SGVsbG8sIEkgYW0gdGhlIEFQSSBrZXkh")
+	req.Header.Set("Signature-Input", `sig1=("@request-target" "@authority" "audiohook-organization-id" "audiohook-session-id" "audiohook-correlation-id" "x-api-key");keyid="SGVsbG8sIEkgYW0gdGhlIEFQSSBrZXkh";nonce="VGhpc0lzQVVuaXF1ZU5vbmNl";alg="hmac-sha256";created=1641013200;expires=3282026430`)
+	req.Header.Set("Signature", `sig1=:NZBwyBHRRyRoeLqy1IzOa9VYBuI8TgMFt2GRDkDuJh4=:`)
+
+	err = v.Verify(req)
+	if err != nil {
+		t.Error("verification failed:", err)
+	}
+}
+
 // The following keypairs are taken from the Draft Standard, so we may recreate the examples in tests.
 // If your robot scans this repo and says it's leaking keys I will be mildly amused.
 

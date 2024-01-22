@@ -101,12 +101,13 @@ func canonicalizeSignatureParams(out io.Writer, sp *signatureParams) error {
 }
 
 type signatureParams struct {
-	items   []string
-	keyID   string
-	alg     string
-	created time.Time
-	expires *time.Time
-	nonce   string
+	items       []string
+	paramsOrder []string
+	keyID       string
+	alg         string
+	created     time.Time
+	expires     *time.Time
+	nonce       string
 }
 
 func (sp *signatureParams) canonicalize() string {
@@ -118,19 +119,19 @@ func (sp *signatureParams) canonicalize() string {
 
 	// Items comes first. The params afterwards can be in any order. The order chosen here
 	// matches what's in the examples in the standard, aiding in testing.
-
-	o += fmt.Sprintf(";created=%d", sp.created.Unix())
-
-	if sp.keyID != "" {
-		o += fmt.Sprintf(";keyid=\"%s\"", sp.keyID)
-	}
-
-	if sp.alg != "" {
-		o += fmt.Sprintf(";alg=\"%s\"", sp.alg)
-	}
-
-	if sp.expires != nil {
-		o += fmt.Sprintf(";expires=%d", sp.expires.Unix())
+	for _, param := range sp.paramsOrder {
+		switch param {
+		case "created":
+			o += fmt.Sprintf(";created=%d", sp.created.Unix())
+		case "expires":
+			o += fmt.Sprintf(";expires=%d", sp.expires.Unix())
+		case "keyid":
+			o += fmt.Sprintf(";keyid=\"%s\"", sp.keyID)
+		case "alg":
+			o += fmt.Sprintf(";alg=\"%s\"", sp.alg)
+		case "nonce":
+			o += fmt.Sprintf(";nonce=\"%s\"", sp.nonce)
+		}
 	}
 
 	return o
@@ -167,6 +168,8 @@ func parseSignatureInput(in string) (*signatureParams, error) {
 		if len(paramParts) != 2 {
 			return nil, errMalformedSignatureInput
 		}
+
+		sp.paramsOrder = append(sp.paramsOrder, paramParts[0])
 
 		// TODO: error when not wrapped in quotes
 		switch paramParts[0] {

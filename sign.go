@@ -80,10 +80,11 @@ func (s *signer) Sign(msg *message) (http.Header, error) {
 	i := 1 // 1 indexed icky
 	for k, si := range s.keys {
 		sp := &signatureParams{
-			items:   items,
-			keyID:   k,
-			created: now,
-			alg:     si.alg,
+			items:       items,
+			keyID:       k,
+			created:     now,
+			alg:         si.alg,
+			paramsOrder: []string{"created", "keyid"},
 		}
 		sps[fmt.Sprintf("sig%d", i)] = sp.canonicalize()
 
@@ -163,8 +164,8 @@ func signEccP256(pk *ecdsa.PrivateKey) sigHolder {
 }
 
 func signHmacSha256(secret []byte) sigHolder {
-	// TODO: add alg description
 	return sigHolder{
+		alg: "hmac-sha256",
 		signer: func() sigImpl {
 			h := hmac.New(sha256.New, secret)
 

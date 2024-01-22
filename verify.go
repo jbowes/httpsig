@@ -156,8 +156,8 @@ func (v *verifier) Verify(msg *message) error {
 		return errInvalidSignature
 	}
 
-	// TODO: could put in some wiggle room
-	if params.expires != nil && params.expires.After(time.Now()) {
+	// 1 min of wiggle room for time sync between client and server
+	if params.expires != nil && params.expires.Before(time.Now().Add(time.Minute)) {
 		return errSignatureExpired
 	}
 
