@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/jbowes/httpsig"
+	"github.com/ynodir/httpsig"
 )
 
 const secret = "support-your-local-cat-bonnet-store"

@@ -73,6 +73,13 @@ func canonicalizePath(out io.Writer, path string) error {
 	return err
 }
 
+func canonicalizeRequestTarget(out io.Writer, requestTarget string) error {
+	// Section 2.2.5 (v19) covers canonicalization of the path.
+	// Section 2.4 step 2 covers using it as input.
+	_, err := fmt.Fprintf(out, "\"@request-target\": %s\n", requestTarget)
+	return err
+}
+
 func canonicalizeQuery(out io.Writer, rawQuery string) error {
 	// Section 2.3.8 covers canonicalization of the query.
 	// Section 2.4 step 2 covers using it as input.

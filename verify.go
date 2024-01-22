@@ -131,6 +131,8 @@ func (v *verifier) Verify(msg *message) error {
 			err = canonicalizeQuery(&b, msg.URL.RawQuery)
 		case "@authority":
 			err = canonicalizeAuthority(&b, msg.Authority)
+		case "@request-target":
+			err = canonicalizeRequestTarget(&b, msg.URL.RawPath)
 		default:
 			// handle default (header) components
 			err = canonicalizeHeader(&b, h, msg.Header)
