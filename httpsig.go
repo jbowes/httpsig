@@ -32,9 +32,9 @@ func sliceHas(haystack []string, needle string) bool {
 // key ids. You must provide at least one signing option. A signature for every provided key id is
 // included on each request. Multiple included signatures allow you to gracefully introduce stronger
 // algorithms, rotate keys, etc.
-func NewSignTransport(transport http.RoundTripper, opts ...signOption) http.RoundTripper {
-	s := signer{
-		keys:    map[string]sigHolder{},
+func NewSignTransport(transport http.RoundTripper, opts ...SignOption) http.RoundTripper {
+	s := Signer{
+		keys:    map[string]SigHolder{},
 		nowFunc: time.Now,
 	}
 
@@ -76,7 +76,7 @@ func NewSignTransport(transport http.RoundTripper, opts ...signOption) http.Roun
 		// TODO: we could skip setting digest on an empty body if content-length is included in the sig
 		nr.Header.Set("Digest", calcDigest(b.Bytes()))
 
-		msg := messageFromRequest(nr)
+		msg := MessageFromRequest(nr)
 		hdr, err := s.Sign(msg)
 		if err != nil {
 			return nil, err
@@ -103,7 +103,7 @@ func (r rt) RoundTrip(req *http.Request) (*http.Response, error) { return r(req)
 // Requests with missing signatures, malformed signature headers, expired signatures, or
 // invalid signatures are rejected with a `400` response. Only one valid signature is required
 // from the known key ids. However, only the first known key id is checked.
-func NewVerifyMiddleware(opts ...verifyOption) func(http.Handler) http.Handler {
+func NewVerifyMiddleware(opts ...VerifyOption) func(http.Handler) http.Handler {
 
 	// TODO: form and multipart support
 	v := verifier{
@@ -126,7 +126,7 @@ func NewVerifyMiddleware(opts ...verifyOption) func(http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 
-			msg := messageFromRequest(r)
+			msg := MessageFromRequest(r)
 			err := v.Verify(msg)
 			if err != nil {
 				serveErr(rw)
@@ -161,49 +161,49 @@ func NewVerifyMiddleware(opts ...verifyOption) func(http.Handler) http.Handler {
 	}
 }
 
-type signOption interface {
-	configureSign(s *signer)
+type SignOption interface {
+	configureSign(s *Signer)
 }
 
-type verifyOption interface {
+type VerifyOption interface {
 	configureVerify(v *verifier)
 }
 
-type signOrVerifyOption interface {
-	signOption
-	verifyOption
+type SignOrVerifyOption interface {
+	SignOption
+	VerifyOption
 }
 
 type optImpl struct {
-	s func(s *signer)
+	s func(s *Signer)
 	v func(v *verifier)
 }
 
-func (o *optImpl) configureSign(s *signer)     { o.s(s) }
+func (o *optImpl) configureSign(s *Signer)     { o.s(s) }
 func (o *optImpl) configureVerify(v *verifier) { o.v(v) }
 
 // WithHeaders sets the list of headers that will be included in the signature.
 // The Digest header is always included (and the digest calculated).
 //
 // If not provided, the default headers `content-type, content-length, host` are used.
-func WithHeaders(hdr ...string) signOption {
+func WithHeaders(hdr ...string) SignOption {
 	// TODO: use this to implement required headers in verify?
 	return &optImpl{
-		s: func(s *signer) { s.headers = hdr },
+		s: func(s *Signer) { s.headers = hdr },
 	}
 }
 
 // WithSignRsaPssSha512 adds signing using `rsa-pss-sha512` with the given private key
 // using the given key id.
-func WithSignRsaPssSha512(keyID string, pk *rsa.PrivateKey) signOption {
+func WithSignRsaPssSha512(keyID string, pk *rsa.PrivateKey) SignOption {
 	return &optImpl{
-		s: func(s *signer) { s.keys[keyID] = signRsaPssSha512(pk) },
+		s: func(s *Signer) { s.keys[keyID] = SignRsaPssSha512(pk) },
 	}
 }
 
 // WithVerifyRsaPssSha512 adds signature verification using `rsa-pss-sha512` with the
 // given public key using the given key id.
-func WithVerifyRsaPssSha512(keyID string, pk *rsa.PublicKey) verifyOption {
+func WithVerifyRsaPssSha512(keyID string, pk *rsa.PublicKey) VerifyOption {
 	return &optImpl{
 		v: func(v *verifier) { v.keys[keyID] = verifyRsaPssSha512(pk) },
 	}
@@ -211,15 +211,15 @@ func WithVerifyRsaPssSha512(keyID string, pk *rsa.PublicKey) verifyOption {
 
 // WithSignEcdsaP256Sha256 adds signing using `ecdsa-p256-sha256` with the given private key
 // using the given key id.
-func WithSignEcdsaP256Sha256(keyID string, pk *ecdsa.PrivateKey) signOption {
+func WithSignEcdsaP256Sha256(keyID string, pk *ecdsa.PrivateKey) SignOption {
 	return &optImpl{
-		s: func(s *signer) { s.keys[keyID] = signEccP256(pk) },
+		s: func(s *Signer) { s.keys[keyID] = SignEccP256(pk) },
 	}
 }
 
 // WithVerifyEcdsaP256Sha256 adds signature verification using `ecdsa-p256-sha256` with the
 // given public key using the given key id.
-func WithVerifyEcdsaP256Sha256(keyID string, pk *ecdsa.PublicKey) verifyOption {
+func WithVerifyEcdsaP256Sha256(keyID string, pk *ecdsa.PublicKey) VerifyOption {
 	return &optImpl{
 		v: func(v *verifier) { v.keys[keyID] = verifyEccP256(pk) },
 	}
@@ -227,9 +227,9 @@ func WithVerifyEcdsaP256Sha256(keyID string, pk *ecdsa.PublicKey) verifyOption {
 
 // WithHmacSha256 adds signing or signature verification using `hmac-sha256` with the
 // given shared secret using the given key id.
-func WithHmacSha256(keyID string, secret []byte) signOrVerifyOption {
+func WithHmacSha256(keyID string, secret []byte) SignOrVerifyOption {
 	return &optImpl{
-		s: func(s *signer) { s.keys[keyID] = signHmacSha256(secret) },
+		s: func(s *Signer) { s.keys[keyID] = SignHmacSha256(secret) },
 		v: func(v *verifier) { v.keys[keyID] = verifyHmacSha256(secret) },
 	}
 }

@@ -27,8 +27,8 @@ func parse(in string) *url.URL {
 	return out
 }
 
-func testReq() *message {
-	return &message{
+func testReq() *Message {
+	return &Message{
 		Method:    "POST",
 		Authority: "example.com",
 		URL:       parse("https://example.com/foo?param=value&pet=dog"),
@@ -48,10 +48,10 @@ func TestSign_B_2_5(t *testing.T) {
 		panic("could not decode test shared secret")
 	}
 
-	s := &signer{
+	s := &Signer{
 		headers: []string{"@authority", "date", "content-type"},
-		keys: map[string]sigHolder{
-			"test-shared-secret": signHmacSha256(k),
+		keys: map[string]SigHolder{
+			"test-shared-secret": SignHmacSha256(k),
 		},
 
 		nowFunc: func() time.Time { return time.Unix(1618884475, 0) },

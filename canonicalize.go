@@ -15,19 +15,19 @@ import (
 	"time"
 )
 
-// message is a minimal representation of an HTTP request or response, containing the values
+// Message is a minimal representation of an HTTP request or response, containing the values
 // needed to construct a signature.
-type message struct {
+type Message struct {
 	Method    string
 	Authority string
 	URL       *nurl.URL
 	Header    http.Header
 }
 
-func messageFromRequest(r *http.Request) *message {
+func MessageFromRequest(r *http.Request) *Message {
 	hdr := r.Header.Clone()
 	hdr.Set("Host", r.Host)
-	return &message{
+	return &Message{
 		Method:    r.Method,
 		Authority: r.Host,
 		URL:       r.URL,
@@ -164,10 +164,8 @@ func parseSignatureInput(in string) (*signatureParams, error) {
 	}
 
 	for _, param := range parts[1:] {
-		paramParts := strings.Split(param, "=")
-		if len(paramParts) != 2 {
-			return nil, errMalformedSignatureInput
-		}
+		// keyid can be base64 encoded, so it can have = symbols at the end
+		paramParts := strings.SplitN(param, "=", 2)
 
 		sp.paramsOrder = append(sp.paramsOrder, paramParts[0])
 

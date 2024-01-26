@@ -37,7 +37,7 @@ type verifier struct {
 }
 
 // XXX: note about fail fast.
-func (v *verifier) Verify(msg *message) error {
+func (v *verifier) Verify(msg *Message) error {
 	sigHdr := msg.Header.Get("Signature")
 	if sigHdr == "" {
 		return errNotSigned
@@ -132,7 +132,7 @@ func (v *verifier) Verify(msg *message) error {
 		case "@authority":
 			err = canonicalizeAuthority(&b, msg.Authority)
 		case "@request-target":
-			err = canonicalizeRequestTarget(&b, msg.URL.String())
+			err = canonicalizeRequestTarget(&b, msg.URL.RequestURI())
 		default:
 			// handle default (header) components
 			err = canonicalizeHeader(&b, h, msg.Header)

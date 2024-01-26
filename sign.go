@@ -25,20 +25,28 @@ type sigImpl struct {
 	sign func() []byte
 }
 
-type sigHolder struct {
+type SigHolder struct {
 	alg    string
 	signer func() sigImpl
 }
 
-type signer struct {
+type Signer struct {
 	headers []string
-	keys    map[string]sigHolder
+	keys    map[string]SigHolder
 
 	// For testing
 	nowFunc func() time.Time
 }
 
-func (s *signer) Sign(msg *message) (http.Header, error) {
+func NewSigner(headers []string, keys map[string]SigHolder) *Signer {
+	return &Signer{
+		headers: headers,
+		keys:    keys,
+		nowFunc: time.Now,
+	}
+}
+
+func (s *Signer) Sign(msg *Message) (http.Header, error) {
 	var b bytes.Buffer
 
 	var items []string
@@ -61,6 +69,8 @@ func (s *signer) Sign(msg *message) (http.Header, error) {
 			err = canonicalizeQuery(&b, msg.URL.RawQuery)
 		case "@authority":
 			err = canonicalizeAuthority(&b, msg.Authority)
+		case "@request-target":
+			err = canonicalizeRequestTarget(&b, msg.URL.RequestURI())
 		default:
 			// handle default (header) components
 			err = canonicalizeHeader(&b, h, msg.Header)
@@ -123,8 +133,8 @@ func (s *signer) Sign(msg *message) (http.Header, error) {
 	return hdr, nil
 }
 
-func signRsaPssSha512(pk *rsa.PrivateKey) sigHolder {
-	return sigHolder{
+func SignRsaPssSha512(pk *rsa.PrivateKey) SigHolder {
+	return SigHolder{
 		alg: "rsa-pss-sha512",
 		signer: func() sigImpl {
 			h := sha256.New()
@@ -143,8 +153,8 @@ func signRsaPssSha512(pk *rsa.PrivateKey) sigHolder {
 	}
 }
 
-func signEccP256(pk *ecdsa.PrivateKey) sigHolder {
-	return sigHolder{
+func SignEccP256(pk *ecdsa.PrivateKey) SigHolder {
+	return SigHolder{
 		alg: "ecdsa-p256-sha256",
 		signer: func() sigImpl {
 			h := sha256.New()
@@ -163,8 +173,8 @@ func signEccP256(pk *ecdsa.PrivateKey) sigHolder {
 	}
 }
 
-func signHmacSha256(secret []byte) sigHolder {
-	return sigHolder{
+func SignHmacSha256(secret []byte) SigHolder {
+	return SigHolder{
 		alg: "hmac-sha256",
 		signer: func() sigImpl {
 			h := hmac.New(sha256.New, secret)
