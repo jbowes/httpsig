@@ -24,14 +24,37 @@ type Message struct {
 	Header    http.Header
 }
 
+var DefaultPorts = map[string]struct{}{
+	"80":  {}, // http
+	"443": {}, // https
+	"21":  {}, // ftp
+}
+
 func MessageFromRequest(r *http.Request) *Message {
 	hdr := r.Header.Clone()
 	hdr.Set("Host", r.Host)
 	return &Message{
-		Method:    r.Method,
-		Authority: r.Host,
+		Method: r.Method,
+		// TODO Host header is used only in HTTP/1.1 - for other versions we should be using :authority header
+		// need to remove default port from Host header: https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-message-signatures-19#content-request-authority
+		Authority: normalizeHostHeader(r.Host),
 		URL:       r.URL,
 		Header:    hdr,
+	}
+}
+
+func normalizeHostHeader(host string) string {
+	hostParts := strings.Split(host, ":")
+	if len(hostParts) == 0 || len(hostParts) > 2 {
+		panic("invalid host header: " + host)
+	} else if len(hostParts) == 1 {
+		return host
+	} else {
+		if _, isFound := DefaultPorts[hostParts[1]]; isFound {
+			return hostParts[0]
+		} else {
+			return host
+		}
 	}
 }
 

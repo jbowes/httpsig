@@ -118,7 +118,7 @@ func NewVerifyMiddleware(opts ...VerifyOption) func(http.Handler) http.Handler {
 	serveErr := func(rw http.ResponseWriter) {
 		// TODO: better error and custom error handler
 		rw.Header().Set("Content-Type", "text/plain")
-		rw.WriteHeader(http.StatusBadRequest)
+		rw.WriteHeader(http.StatusUnauthorized)
 
 		_, _ = rw.Write([]byte("invalid required signature"))
 	}
