@@ -37,7 +37,7 @@ type verifier struct {
 }
 
 // XXX: note about fail fast.
-func (v *verifier) Verify(msg *message) error {
+func (v *verifier) Verify(msg *Message) error {
 	sigHdr := msg.Header.Get("Signature")
 	if sigHdr == "" {
 		return errNotSigned
@@ -131,6 +131,8 @@ func (v *verifier) Verify(msg *message) error {
 			err = canonicalizeQuery(&b, msg.URL.RawQuery)
 		case "@authority":
 			err = canonicalizeAuthority(&b, msg.Authority)
+		case "@request-target":
+			err = canonicalizeRequestTarget(&b, msg.URL.RequestURI())
 		default:
 			// handle default (header) components
 			err = canonicalizeHeader(&b, h, msg.Header)
@@ -154,8 +156,8 @@ func (v *verifier) Verify(msg *message) error {
 		return errInvalidSignature
 	}
 
-	// TODO: could put in some wiggle room
-	if params.expires != nil && params.expires.After(time.Now()) {
+	// 1 min of wiggle room for time sync between client and server
+	if params.expires != nil && params.expires.Before(time.Now().Add(-1*time.Minute)) {
 		return errSignatureExpired
 	}
 

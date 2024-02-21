@@ -15,23 +15,46 @@ import (
 	"time"
 )
 
-// message is a minimal representation of an HTTP request or response, containing the values
+// Message is a minimal representation of an HTTP request or response, containing the values
 // needed to construct a signature.
-type message struct {
+type Message struct {
 	Method    string
 	Authority string
 	URL       *nurl.URL
 	Header    http.Header
 }
 
-func messageFromRequest(r *http.Request) *message {
+var DefaultPorts = map[string]struct{}{
+	"80":  {}, // http
+	"443": {}, // https
+	"21":  {}, // ftp
+}
+
+func MessageFromRequest(r *http.Request) *Message {
 	hdr := r.Header.Clone()
 	hdr.Set("Host", r.Host)
-	return &message{
-		Method:    r.Method,
-		Authority: r.Host,
+	return &Message{
+		Method: r.Method,
+		// TODO Host header is used only in HTTP/1.1 - for other versions we should be using :authority header
+		// need to remove default port from Host header: https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-message-signatures-19#content-request-authority
+		Authority: normalizeHostHeader(r.Host),
 		URL:       r.URL,
 		Header:    hdr,
+	}
+}
+
+func normalizeHostHeader(host string) string {
+	hostParts := strings.Split(host, ":")
+	if len(hostParts) == 0 || len(hostParts) > 2 {
+		panic("invalid host header: " + host)
+	} else if len(hostParts) == 1 {
+		return host
+	} else {
+		if _, isFound := DefaultPorts[hostParts[1]]; isFound {
+			return hostParts[0]
+		} else {
+			return host
+		}
 	}
 }
 
@@ -73,6 +96,13 @@ func canonicalizePath(out io.Writer, path string) error {
 	return err
 }
 
+func canonicalizeRequestTarget(out io.Writer, requestTarget string) error {
+	// Section 2.2.5 (v19) covers canonicalization of the path.
+	// Section 2.4 step 2 covers using it as input.
+	_, err := fmt.Fprintf(out, "\"@request-target\": %s\n", requestTarget)
+	return err
+}
+
 func canonicalizeQuery(out io.Writer, rawQuery string) error {
 	// Section 2.3.8 covers canonicalization of the query.
 	// Section 2.4 step 2 covers using it as input.
@@ -94,12 +124,13 @@ func canonicalizeSignatureParams(out io.Writer, sp *signatureParams) error {
 }
 
 type signatureParams struct {
-	items   []string
-	keyID   string
-	alg     string
-	created time.Time
-	expires *time.Time
-	nonce   string
+	items       []string
+	paramsOrder []string
+	keyID       string
+	alg         string
+	created     time.Time
+	expires     *time.Time
+	nonce       string
 }
 
 func (sp *signatureParams) canonicalize() string {
@@ -111,19 +142,19 @@ func (sp *signatureParams) canonicalize() string {
 
 	// Items comes first. The params afterwards can be in any order. The order chosen here
 	// matches what's in the examples in the standard, aiding in testing.
-
-	o += fmt.Sprintf(";created=%d", sp.created.Unix())
-
-	if sp.keyID != "" {
-		o += fmt.Sprintf(";keyid=\"%s\"", sp.keyID)
-	}
-
-	if sp.alg != "" {
-		o += fmt.Sprintf(";alg=\"%s\"", sp.alg)
-	}
-
-	if sp.expires != nil {
-		o += fmt.Sprintf(";expires=%d", sp.expires.Unix())
+	for _, param := range sp.paramsOrder {
+		switch param {
+		case "created":
+			o += fmt.Sprintf(";created=%d", sp.created.Unix())
+		case "expires":
+			o += fmt.Sprintf(";expires=%d", sp.expires.Unix())
+		case "keyid":
+			o += fmt.Sprintf(";keyid=\"%s\"", sp.keyID)
+		case "alg":
+			o += fmt.Sprintf(";alg=\"%s\"", sp.alg)
+		case "nonce":
+			o += fmt.Sprintf(";nonce=\"%s\"", sp.nonce)
+		}
 	}
 
 	return o
@@ -156,10 +187,10 @@ func parseSignatureInput(in string) (*signatureParams, error) {
 	}
 
 	for _, param := range parts[1:] {
-		paramParts := strings.Split(param, "=")
-		if len(paramParts) != 2 {
-			return nil, errMalformedSignatureInput
-		}
+		// keyid can be base64 encoded, so it can have = symbols at the end
+		paramParts := strings.SplitN(param, "=", 2)
+
+		sp.paramsOrder = append(sp.paramsOrder, paramParts[0])
 
 		// TODO: error when not wrapped in quotes
 		switch paramParts[0] {
