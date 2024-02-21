@@ -157,7 +157,7 @@ func (v *verifier) Verify(msg *Message) error {
 	}
 
 	// 1 min of wiggle room for time sync between client and server
-	if params.expires != nil && params.expires.Before(time.Now().Add(time.Minute)) {
+	if params.expires != nil && params.expires.Before(time.Now().Add(-1*time.Minute)) {
 		return errSignatureExpired
 	}
 
